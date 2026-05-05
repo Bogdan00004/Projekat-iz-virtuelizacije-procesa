@@ -8,3 +8,4 @@ C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug
 C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.csproj.Up2Date
 C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.exe
 C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.pdb
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.exe.config
