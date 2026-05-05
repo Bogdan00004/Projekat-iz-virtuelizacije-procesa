@@ -1,0 +1,10 @@
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.csproj.AssemblyReference.cache
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug\Server.exe.config
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug\Server.exe
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug\Server.pdb
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug\Common.dll
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\bin\Debug\Common.pdb
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.csproj.Up2Date
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.exe
+C:\Users\PC\Desktop\zadatakVirtuelizacija\MeteorologijaProjekat\Server\obj\Debug\Server.pdb
