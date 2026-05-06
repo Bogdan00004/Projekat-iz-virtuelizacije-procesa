@@ -3,7 +3,19 @@
   "WorkspaceRootPath": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|solutionrelative:server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|c:\\users\\pc\\desktop\\zadatakvirtuelizacija\\meteorologijaprojekat\\server\\filewriter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|solutionrelative:server\\filewriter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|c:\\users\\pc\\desktop\\zadatakvirtuelizacija\\meteorologijaprojekat\\client\\csvreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|solutionrelative:client\\csvreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|c:\\users\\pc\\desktop\\zadatakvirtuelizacija\\meteorologijaprojekat\\client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|solutionrelative:client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -11,12 +23,8 @@
       "RelativeMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|solutionrelative:server\\weatherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{0E1F3BCB-FC93-4FAC-96BE-71EEA32AABF8}|Common\\Common.csproj|c:\\users\\pc\\desktop\\zadatakvirtuelizacija\\meteorologijaprojekat\\common\\iweatherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{0E1F3BCB-FC93-4FAC-96BE-71EEA32AABF8}|Common\\Common.csproj|C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\common\\iweatherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0E1F3BCB-FC93-4FAC-96BE-71EEA32AABF8}|Common\\Common.csproj|solutionrelative:common\\iweatherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1A553998-2403-46D4-A39E-4A4C0805D3E9}|Server\\Server.csproj|solutionrelative:server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{EC7971E3-5F62-4C5E-9BD6-216953E5B72B}|Client\\Client.csproj|C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\client\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
@@ -67,31 +75,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "WeatherService.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\WeatherService.cs",
-              "RelativeDocumentMoniker": "Server\\WeatherService.cs",
-              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\WeatherService.cs",
-              "RelativeToolTip": "Server\\WeatherService.cs",
-              "ViewState": "AgIAAGoAAAAAAAAAAAAmwIoAAAA6AAAAAAAAAA==",
+              "Title": "FileWriter.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\FileWriter.cs",
+              "RelativeDocumentMoniker": "Server\\FileWriter.cs",
+              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\FileWriter.cs",
+              "RelativeToolTip": "Server\\FileWriter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T13:27:59.581Z",
+              "WhenOpened": "2026-05-06T14:15:07.811Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "App.config",
-              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\App.config",
-              "RelativeDocumentMoniker": "Client\\App.config",
-              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\App.config",
-              "RelativeToolTip": "Client\\App.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2026-05-05T13:27:11.908Z"
+              "DocumentIndex": 2,
+              "Title": "CsvReader.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\CsvReader.cs",
+              "RelativeDocumentMoniker": "Client\\CsvReader.cs",
+              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\CsvReader.cs",
+              "RelativeToolTip": "Client\\CsvReader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T14:14:36.973Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "App.config",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\App.config",
               "RelativeDocumentMoniker": "Server\\App.config",
@@ -103,7 +112,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "IWeatherService.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\IWeatherService.cs",
               "RelativeDocumentMoniker": "Common\\IWeatherService.cs",
@@ -111,12 +120,36 @@
               "RelativeToolTip": "Common\\IWeatherService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAkwBQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T13:23:28.582Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-05T13:23:28.582Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\Program.cs",
+              "RelativeDocumentMoniker": "Server\\Program.cs",
+              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\Program.cs",
+              "RelativeToolTip": "Server\\Program.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAuwBEAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-05T13:16:47.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "App.config",
+              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\App.config",
+              "RelativeDocumentMoniker": "Client\\App.config",
+              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\App.config",
+              "RelativeToolTip": "Client\\App.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2026-05-05T13:27:11.908Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Client\\Program.cs",
               "RelativeDocumentMoniker": "Client\\Program.cs",
@@ -129,7 +162,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 4,
+              "Title": "WeatherService.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\WeatherService.cs",
+              "RelativeDocumentMoniker": "Server\\WeatherService.cs",
+              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\WeatherService.cs",
+              "RelativeToolTip": "Server\\WeatherService.cs",
+              "ViewState": "AgIAAGoAAAAAAAAAAAAmwIoAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-05T13:27:59.581Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "ValidationFault.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\Faults\\ValidationFault.cs",
               "RelativeDocumentMoniker": "Common\\Faults\\ValidationFault.cs",
@@ -141,7 +186,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "DataFormatFault.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\Faults\\DataFormatFault.cs",
               "RelativeDocumentMoniker": "Common\\Faults\\DataFormatFault.cs",
@@ -153,19 +198,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\Program.cs",
-              "RelativeDocumentMoniker": "Server\\Program.cs",
-              "ToolTip": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Server\\Program.cs",
-              "RelativeToolTip": "Server\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T13:16:47.454Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "WeatherResponse.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\WeatherResponse.cs",
               "RelativeDocumentMoniker": "Common\\WeatherResponse.cs",
@@ -177,7 +210,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "SessionMeta.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\SessionMeta.cs",
               "RelativeDocumentMoniker": "Common\\SessionMeta.cs",
@@ -189,7 +222,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "WeatherSample.cs",
               "DocumentMoniker": "C:\\Users\\PC\\Desktop\\zadatakVirtuelizacija\\MeteorologijaProjekat\\Common\\WeatherSample.cs",
               "RelativeDocumentMoniker": "Common\\WeatherSample.cs",
