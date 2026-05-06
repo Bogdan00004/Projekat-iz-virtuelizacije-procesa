@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.ServiceModel;
 using Common;
 using Common.Faults;
@@ -9,6 +10,8 @@ namespace Server
     public class WeatherService : IWeatherService
     {
         private bool sessionActive = false;
+        private FileWriter fileWriter = null;
+        private string filesPath = ConfigurationManager.AppSettings["path"] ?? "Files";
 
         public WeatherResponse StartSession(SessionMeta meta)
         {
@@ -16,16 +19,24 @@ namespace Server
             {
                 if (meta == null)
                 {
-                    throw new FaultException<DataFormatFault>(new DataFormatFault("Meta zaglavlje ne sme biti null."));
+                    throw new FaultException<DataFormatFault>(
+                        new DataFormatFault("Meta zaglavlje ne sme biti null."));
                 }
 
                 if (string.IsNullOrEmpty(meta.StationName))
                 {
-                    throw new FaultException<ValidationFault>(new ValidationFault("Naziv stanice je obavezno polje."));
+                    throw new FaultException<ValidationFault>(
+                        new ValidationFault("Naziv stanice je obavezno polje."));
                 }
+
+                // Kreiranje FileWriter-a i header-a
+                fileWriter = new FileWriter(filesPath);
+                fileWriter.WriteSession("Date,T,Tpot,Tdew,Rh,Sh");
+                fileWriter.WriteReject("Date,T,Tpot,Tdew,Rh,Sh,Razlog");
 
                 sessionActive = true;
                 Console.WriteLine($"Sesija pokrenuta za stanicu: {meta.StationName}");
+                Console.WriteLine($"Fajlovi kreirani u: {filesPath}");
 
                 return new WeatherResponse
                 {
@@ -39,7 +50,8 @@ namespace Server
             }
             catch (Exception ex)
             {
-                throw new FaultException<DataFormatFault>(new DataFormatFault($"Greska pri pokretanju sesije: {ex.Message}"));
+                throw new FaultException<DataFormatFault>(
+                    new DataFormatFault($"Greska pri pokretanju sesije: {ex.Message}"));
             }
         }
 
@@ -49,50 +61,34 @@ namespace Server
             {
                 if (!sessionActive)
                 {
-                    throw new FaultException<ValidationFault>(new ValidationFault("Sesija nije pokrenuta. Pozovite StartSession prvo."));
+                    throw new FaultException<ValidationFault>(
+                        new ValidationFault("Sesija nije pokrenuta."));
                 }
 
-                // Provera null
                 if (sample == null)
                 {
-                    throw new FaultException<DataFormatFault>(new DataFormatFault("Uzorak ne sme biti null."));
+                    throw new FaultException<DataFormatFault>(
+                        new DataFormatFault("Uzorak ne sme biti null."));
                 }
 
-                // Provera obaveznih polja
-                if (string.IsNullOrEmpty(sample.Date))
-                {
-                    throw new FaultException<ValidationFault>(new ValidationFault("Polje Date je obavezno."));
-                }
+                // Validacija
+                string validationError = ValidateSample(sample);
 
-                // Validacija opsega
-                if (sample.Sh <= 0)
+                if (validationError != null)
                 {
-                    throw new FaultException<ValidationFault>(new ValidationFault($"Specificna vlaga (Sh) mora biti veca od 0. Vrednost: {sample.Sh}"));
-                }
+                    // Upisuje u rejects.csv
+                    fileWriter.WriteReject(
+                        $"{sample.Date},{sample.T},{sample.Tpot},{sample.Tdew},{sample.Rh},{sample.Sh},{validationError}");
 
-                if (sample.Rh < 0 || sample.Rh > 100)
-                {
+                    Console.WriteLine($"[ODBIJEN UZORAK] {sample.Date} - {validationError}");
+
                     throw new FaultException<ValidationFault>(
-                        new ValidationFault($"Relativna vlaznost (Rh) mora biti izmedju 0 i 100. Vrednost: {sample.Rh}"));
+                        new ValidationFault(validationError));
                 }
 
-                if (sample.T < -90 || sample.T > 60)
-                {
-                    throw new FaultException<ValidationFault>(
-                        new ValidationFault($"Temperatura (T) mora biti izmedju -90 i 60. Vrednost: {sample.T}"));
-                }
-
-                if (sample.Tpot < -90 || sample.Tpot > 400)
-                {
-                    throw new FaultException<ValidationFault>(
-                        new ValidationFault($"Potencijalna temperatura (Tpot) nije u dozvoljenom opsegu. Vrednost: {sample.Tpot}"));
-                }
-
-                if (sample.Tdew < -90 || sample.Tdew > 60)
-                {
-                    throw new FaultException<ValidationFault>(
-                        new ValidationFault($"Temperatura tacke rose (Tdew) nije u dozvoljenom opsegu. Vrednost: {sample.Tdew}"));
-                }
+                // Upisuje u measurements_session.csv
+                fileWriter.WriteSession(
+                    $"{sample.Date},{sample.T},{sample.Tpot},{sample.Tdew},{sample.Rh},{sample.Sh}");
 
                 Console.WriteLine($"[PRIMLJEN UZORAK] Datum: {sample.Date} | T={sample.T} | Sh={sample.Sh} | Rh={sample.Rh}");
 
@@ -108,7 +104,8 @@ namespace Server
             }
             catch (Exception ex)
             {
-                throw new FaultException<DataFormatFault>(new DataFormatFault($"Greska pri obradi uzorka: {ex.Message}"));
+                throw new FaultException<DataFormatFault>(
+                    new DataFormatFault($"Greska pri obradi uzorka: {ex.Message}"));
             }
         }
 
@@ -118,11 +115,19 @@ namespace Server
             {
                 if (!sessionActive)
                 {
-                    throw new FaultException<ValidationFault>(new ValidationFault("Nema aktivne sesije za zavrsavanje."));
+                    throw new FaultException<ValidationFault>(
+                        new ValidationFault("Nema aktivne sesije."));
+                }
+
+                // Dispose FileWriter-a
+                if (fileWriter != null)
+                {
+                    fileWriter.Dispose();
+                    fileWriter = null;
                 }
 
                 sessionActive = false;
-                Console.WriteLine("Sesija zavrsena.");
+                Console.WriteLine("Sesija zavrsena. Fajlovi sacuvani.");
 
                 return new WeatherResponse
                 {
@@ -136,8 +141,32 @@ namespace Server
             }
             catch (Exception ex)
             {
-                throw new FaultException<DataFormatFault>(new DataFormatFault($"Greska pri zavrsavanju sesije: {ex.Message}"));
+                throw new FaultException<DataFormatFault>(
+                    new DataFormatFault($"Greska pri zavrsavanju sesije: {ex.Message}"));
             }
+        }
+
+        private string ValidateSample(WeatherSample sample)
+        {
+            if (string.IsNullOrEmpty(sample.Date))
+                return "Polje Date je obavezno.";
+
+            if (sample.Sh <= 0)
+                return $"Sh mora biti > 0. Vrednost: {sample.Sh}";
+
+            if (sample.Rh < 0 || sample.Rh > 100)
+                return $"Rh mora biti izmedju 0 i 100. Vrednost: {sample.Rh}";
+
+            if (sample.T < -90 || sample.T > 60)
+                return $"T mora biti izmedju -90 i 60. Vrednost: {sample.T}";
+
+            if (sample.Tpot < -90 || sample.Tpot > 400)
+                return $"Tpot nije u dozvoljenom opsegu. Vrednost: {sample.Tpot}";
+
+            if (sample.Tdew < -90 || sample.Tdew > 60)
+                return $"Tdew nije u dozvoljenom opsegu. Vrednost: {sample.Tdew}";
+
+            return null;
         }
     }
 }
