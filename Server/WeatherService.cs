@@ -37,6 +37,7 @@ namespace Server
                 sessionActive = true;
                 Console.WriteLine($"Sesija pokrenuta za stanicu: {meta.StationName}");
                 Console.WriteLine($"Fajlovi kreirani u: {filesPath}");
+                Console.WriteLine("Status: prenos u toku...");
 
                 return new WeatherResponse
                 {
@@ -91,6 +92,7 @@ namespace Server
                     $"{sample.Date},{sample.T},{sample.Tpot},{sample.Tdew},{sample.Rh},{sample.Sh}");
 
                 Console.WriteLine($"[PRIMLJEN UZORAK] Datum: {sample.Date} | T={sample.T} | Sh={sample.Sh} | Rh={sample.Rh}");
+                Console.WriteLine("Status: prenos u toku...");
 
                 return new WeatherResponse
                 {
@@ -127,6 +129,7 @@ namespace Server
                 }
 
                 sessionActive = false;
+                Console.WriteLine("Status: zavrsen prenos.");
                 Console.WriteLine("Sesija zavrsena. Fajlovi sacuvani.");
 
                 return new WeatherResponse

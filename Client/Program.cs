@@ -6,54 +6,161 @@ using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.ServiceModel;
+using System.Threading;
 
 namespace Client
 {
     class Program
     {
+        private const int MAX_VALID_ROWS = 113;
+
         static void Main(string[] args)
         {
             string csvPath = ConfigurationManager.AppSettings["csvPath"];
-
-            List<WeatherSample> samples = new List<WeatherSample>();
             List<string> invalidRows = new List<string>();
 
-            // Citanje CSV-a
-            using (CsvReader csvReader = new CsvReader(csvPath))
+            SendCsvSequentially(csvPath, invalidRows);
+
+            WriteInvalidLog(invalidRows);
+
+            Console.WriteLine("Pritisni ENTER za izlaz...");
+            Console.ReadLine();
+        }
+
+        static void SendCsvSequentially(string csvPath, List<string> invalidRows)
+        {
+            ChannelFactory<IWeatherService> factory = new ChannelFactory<IWeatherService>("WeatherService");
+
+            IWeatherService proxy = null;
+            IClientChannel channel = null;
+            bool sessionStarted = false;
+
+            try
             {
-                // Preskoci header
-                string header = csvReader.ReadLine();
-                int rowIndex = 0;
-                int validCount = 0;
+                proxy = factory.CreateChannel();
+                channel = (IClientChannel)proxy;
 
-                while (!csvReader.EndOfFile() && validCount < 113)
+                WeatherResponse startResponse = proxy.StartSession(new SessionMeta
                 {
-                    rowIndex++;
-                    string line = csvReader.ReadLine();
+                    StationName = "MeteoStanica1",
+                    Description = "Simulacija merenja iz CSV fajla - sekvencijalni prenos"
+                });
 
-                    if (string.IsNullOrWhiteSpace(line))
-                        continue;
+                sessionStarted = true;
 
-                    WeatherSample sample = ParseLine(line, rowIndex, invalidRows);
+                Console.WriteLine($"StartSession: {startResponse.Status} - {startResponse.Message}");
+                Console.WriteLine("Pocinje sekvencijalno slanje uzoraka...");
 
-                    if (sample != null)
+                using (CsvReader csvReader = new CsvReader(csvPath))
+                {
+                    string header = csvReader.ReadLine();
+                    Console.WriteLine("Procitan header:");
+                    Console.WriteLine(header);
+
+                    int rowIndex = 0;
+                    int validCount = 0;
+
+                    while (!csvReader.EndOfFile() && validCount < MAX_VALID_ROWS)
                     {
-                        samples.Add(sample);
+                        rowIndex++;
+
+                        string line = csvReader.ReadLine();
+
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            continue;
+                        }
+
+                        WeatherSample sample = ParseLine(line, rowIndex, invalidRows);
+
+                        if (sample == null)
+                        {
+                            continue;
+                        }
+
                         validCount++;
+
+                        try
+                        {
+                            WeatherResponse pushResponse = proxy.PushSample(sample);
+
+                            Console.WriteLine($"[{validCount}/{MAX_VALID_ROWS}] PushSample: {pushResponse.Status} - {pushResponse.Message}");
+
+                            // Mala pauza samo da se vidi da se salje red po red.
+                            Thread.Sleep(50);
+                        }
+                        catch (FaultException<ValidationFault> ex)
+                        {
+                            string message = $"Red {rowIndex}: server odbio uzorak - {ex.Detail.Message}";
+                            invalidRows.Add(message);
+                            Console.WriteLine(message);
+                        }
+                        catch (FaultException<DataFormatFault> ex)
+                        {
+                            string message = $"Red {rowIndex}: format greska na serveru - {ex.Detail.Message}";
+                            invalidRows.Add(message);
+                            Console.WriteLine(message);
+                        }
+                    }
+
+                    Console.WriteLine($"Ukupno poslato validnih redova: {validCount}");
+                }
+            }
+            catch (FaultException<ValidationFault> ex)
+            {
+                Console.WriteLine($"ValidationFault: {ex.Detail.Message}");
+            }
+            catch (FaultException<DataFormatFault> ex)
+            {
+                Console.WriteLine($"DataFormatFault: {ex.Detail.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Greska: {ex.Message}");
+            }
+            finally
+            {
+                if (sessionStarted && proxy != null)
+                {
+                    try
+                    {
+                        WeatherResponse endResponse = proxy.EndSession();
+                        Console.WriteLine($"EndSession: {endResponse.Status} - {endResponse.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Greska pri EndSession: {ex.Message}");
                     }
                 }
 
-                Console.WriteLine($"Ucitano validnih redova: {samples.Count}");
-                Console.WriteLine($"Nevalidnih redova: {invalidRows.Count}");
+                try
+                {
+                    if (channel != null)
+                    {
+                        if (channel.State == CommunicationState.Faulted)
+                        {
+                            channel.Abort();
+                        }
+                        else
+                        {
+                            channel.Close();
+                        }
+                    }
+
+                    if (factory.State == CommunicationState.Faulted)
+                    {
+                        factory.Abort();
+                    }
+                    else
+                    {
+                        factory.Close();
+                    }
+                }
+                catch
+                {
+                    factory.Abort();
+                }
             }
-
-            // Upisivanje nevalidnih redova u log
-            WriteInvalidLog(invalidRows);
-
-            // Slanje podataka ka servisu
-            SendToServer(samples);
-
-            Console.ReadLine();
         }
 
         static WeatherSample ParseLine(string line, int rowIndex, List<string> invalidRows)
@@ -62,7 +169,7 @@ namespace Client
             {
                 string[] parts = line.Split(',');
 
-                if (parts.Length < 7)
+                if (parts.Length < 10)
                 {
                     invalidRows.Add($"Red {rowIndex}: nedovoljan broj kolona -> {line}");
                     return null;
@@ -70,24 +177,31 @@ namespace Client
 
                 string date = parts[0].Trim();
 
-                // Preskoci redove sa nan vrednostima
-                for (int i = 1; i < 7; i++)
+                int[] requiredIndexes = { 2, 3, 4, 5, 9 };
+
+                foreach (int index in requiredIndexes)
                 {
-                    if (parts[i].Trim().ToLower() == "nan")
+                    string value = parts[index].Trim();
+
+                    if (string.IsNullOrWhiteSpace(value))
                     {
-                        invalidRows.Add($"Red {rowIndex}: sadrzi nan vrednost -> {line}");
+                        invalidRows.Add($"Red {rowIndex}: prazna vrednost u koloni {index} -> {line}");
+                        return null;
+                    }
+
+                    if (value.ToLower() == "nan")
+                    {
+                        invalidRows.Add($"Red {rowIndex}: sadrzi nan vrednost u koloni {index} -> {line}");
                         return null;
                     }
                 }
 
-                // indeksi kolona
                 double T = double.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
                 double Tpot = double.Parse(parts[3].Trim(), CultureInfo.InvariantCulture);
                 double Tdew = double.Parse(parts[4].Trim(), CultureInfo.InvariantCulture);
                 double Rh = double.Parse(parts[5].Trim(), CultureInfo.InvariantCulture);
-                double Sh = double.Parse(parts[6].Trim(), CultureInfo.InvariantCulture);
+                double Sh = double.Parse(parts[9].Trim(), CultureInfo.InvariantCulture);
 
-                // Validacija opsega
                 if (Sh <= 0)
                 {
                     invalidRows.Add($"Red {rowIndex}: Sh mora biti > 0 -> {line}");
@@ -119,7 +233,9 @@ namespace Client
 
         static void WriteInvalidLog(List<string> invalidRows)
         {
-            string logPath = "Data\\invalid_rows.log";
+            Directory.CreateDirectory("Data");
+
+            string logPath = Path.Combine("Data", "invalid_rows.log");
 
             using (StreamWriter writer = new StreamWriter(logPath, append: false))
             {
@@ -140,51 +256,6 @@ namespace Client
             }
 
             Console.WriteLine($"Log nevalidnih redova upisan: {logPath}");
-        }
-
-        static void SendToServer(List<WeatherSample> samples)
-        {
-            ChannelFactory<IWeatherService> factory =
-                new ChannelFactory<IWeatherService>("WeatherService");
-            IWeatherService proxy = factory.CreateChannel();
-
-            try
-            {
-                // StartSession
-                WeatherResponse r1 = proxy.StartSession(new SessionMeta
-                {
-                    StationName = "MeteoStanica1",
-                    Description = "Simulacija merenja iz CSV fajla"
-                });
-                Console.WriteLine($"StartSession: {r1.Status} - {r1.Message}");
-
-                // PushSample za svaki red
-                for (int i = 0; i < samples.Count; i++)
-                {
-                    WeatherResponse r2 = proxy.PushSample(samples[i]);
-                    Console.WriteLine($"[{i + 1}/{samples.Count}] PushSample: {r2.Status}");
-                }
-
-                // EndSession
-                WeatherResponse r3 = proxy.EndSession();
-                Console.WriteLine($"EndSession: {r3.Status} - {r3.Message}");
-            }
-            catch (FaultException<ValidationFault> ex)
-            {
-                Console.WriteLine($"ValidationFault: {ex.Detail.Message}");
-            }
-            catch (FaultException<DataFormatFault> ex)
-            {
-                Console.WriteLine($"DataFormatFault: {ex.Detail.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Greska: {ex.Message}");
-            }
-            finally
-            {
-                factory.Close();
-            }
         }
     }
 }
