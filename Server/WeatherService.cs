@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Globalization;
 using System.ServiceModel;
 using Common;
 using Common.Faults;
@@ -19,6 +20,15 @@ namespace Server
         private string filesPath = ConfigurationManager.AppSettings["path"] ?? "Files";
 
         private WeatherEventLogger eventLogger;
+
+        // Podaci za analitiku specificne vlage - tacka 9
+        private bool hasPreviousSh = false;
+        private double previousSh = 0.0;
+        private double shSum = 0.0;
+        private int shCount = 0;
+
+        private double shThreshold = 2.0;
+        private double shMeanDeviationPercent = 25.0;
 
         public WeatherService()
         {
@@ -42,6 +52,10 @@ namespace Server
                         new ValidationFault("Naziv stanice je obavezno polje."));
                 }
 
+                shThreshold = ReadDoubleFromConfig("SH_threshold", 2.0);
+                shMeanDeviationPercent = ReadDoubleFromConfig("SH_mean_deviation_percent", 25.0);
+                ResetSpecificHumidityAnalytics();
+
                 fileWriter = new FileWriter(filesPath);
 
                 fileWriter.WriteSession("Date,T,Tpot,Tdew,Rh,Sh");
@@ -51,6 +65,7 @@ namespace Server
 
                 Console.WriteLine($"Sesija pokrenuta za stanicu: {meta.StationName}");
                 Console.WriteLine($"Fajlovi kreirani u: {filesPath}");
+                Console.WriteLine($"[CONFIG] SH_threshold={shThreshold}, SH_mean_deviation_percent={shMeanDeviationPercent}%");
                 Console.WriteLine("Status: prenos u toku...");
 
                 RaiseTransferStarted();
@@ -108,6 +123,9 @@ namespace Server
                 Console.WriteLine("Status: prenos u toku...");
 
                 RaiseSampleReceived(sample);
+
+                // Tacka 9: analiza specificne vlage
+                AnalyzeSpecificHumidity(sample);
 
                 return new WeatherResponse
                 {
@@ -187,6 +205,117 @@ namespace Server
                 return $"Tdew nije u dozvoljenom opsegu. Vrednost: {sample.Tdew}";
 
             return null;
+        }
+
+        private void AnalyzeSpecificHumidity(WeatherSample sample)
+        {
+            // 1. DeltaSH = Sh[n] - Sh[n-1]
+            if (hasPreviousSh)
+            {
+                double deltaSh = sample.Sh - previousSh;
+
+                if (Math.Abs(deltaSh) > shThreshold)
+                {
+                    string direction;
+
+                    if (deltaSh > 0)
+                    {
+                        direction = "iznad ocekivanog";
+                    }
+                    else
+                    {
+                        direction = "ispod ocekivanog";
+                    }
+
+                    string message =
+                        $"SHSpike: DeltaSH={deltaSh:F2}, prethodni Sh={previousSh:F2}, trenutni Sh={sample.Sh:F2}, prag={shThreshold:F2}";
+
+                    Console.WriteLine($"[ANALITIKA SH] {message}");
+
+                    RaiseWarning(
+                        "SHSpike",
+                        direction,
+                        message,
+                        sample,
+                        deltaSh,
+                        shThreshold);
+                }
+            }
+
+            // 2. Provera odstupanja od tekuceg proseka SHmean
+            // Za proveru koristimo prosek prethodno primljenih uzoraka.
+            if (shCount > 0)
+            {
+                double shMean = shSum / shCount;
+
+                double lowerLimit = shMean * (1.0 - shMeanDeviationPercent / 100.0);
+                double upperLimit = shMean * (1.0 + shMeanDeviationPercent / 100.0);
+
+                if (sample.Sh < lowerLimit || sample.Sh > upperLimit)
+                {
+                    string direction;
+
+                    if (sample.Sh > upperLimit)
+                    {
+                        direction = "iznad ocekivane vrednosti";
+                    }
+                    else
+                    {
+                        direction = "ispod ocekivane vrednosti";
+                    }
+
+                    string message =
+                        $"OutOfBandWarning: Sh={sample.Sh:F2}, SHmean={shMean:F2}, dozvoljeno=[{lowerLimit:F2}, {upperLimit:F2}], odstupanje={shMeanDeviationPercent:F2}%";
+
+                    Console.WriteLine($"[ANALITIKA SH] {message}");
+
+                    RaiseWarning(
+                        "OutOfBandWarning",
+                        direction,
+                        message,
+                        sample,
+                        sample.Sh,
+                        shMeanDeviationPercent);
+                }
+            }
+
+            // 3. Azuriranje running mean vrednosti posle analize trenutnog uzorka
+            shSum += sample.Sh;
+            shCount++;
+
+            double newMean = shSum / shCount;
+
+            Console.WriteLine($"[ANALITIKA SH] Trenutni Sh={sample.Sh:F2}, SHmean={newMean:F2}, broj uzoraka={shCount}");
+
+            previousSh = sample.Sh;
+            hasPreviousSh = true;
+        }
+
+        private void ResetSpecificHumidityAnalytics()
+        {
+            hasPreviousSh = false;
+            previousSh = 0.0;
+            shSum = 0.0;
+            shCount = 0;
+        }
+
+        private double ReadDoubleFromConfig(string key, double defaultValue)
+        {
+            string value = ConfigurationManager.AppSettings[key];
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return defaultValue;
+            }
+
+            double result;
+
+            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result))
+            {
+                return result;
+            }
+
+            return defaultValue;
         }
 
         private void RaiseTransferStarted()
