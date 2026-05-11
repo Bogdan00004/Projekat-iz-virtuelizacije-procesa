@@ -30,6 +30,11 @@ namespace Server
         private double shThreshold = 2.0;
         private double shMeanDeviationPercent = 25.0;
 
+        // Podaci za analitiku indeksa toplote - tacka 10
+        private bool hasPreviousHi = false;
+        private double previousHi = 0.0;
+        private double hiMaxThreshold = 40.0;
+
         public WeatherService()
         {
             eventLogger = new WeatherEventLogger();
@@ -54,7 +59,10 @@ namespace Server
 
                 shThreshold = ReadDoubleFromConfig("SH_threshold", 2.0);
                 shMeanDeviationPercent = ReadDoubleFromConfig("SH_mean_deviation_percent", 25.0);
+                hiMaxThreshold = ReadDoubleFromConfig("HI_max_threshold", 40.0);
+
                 ResetSpecificHumidityAnalytics();
+                ResetHeatIndexAnalytics();
 
                 fileWriter = new FileWriter(filesPath);
 
@@ -66,6 +74,7 @@ namespace Server
                 Console.WriteLine($"Sesija pokrenuta za stanicu: {meta.StationName}");
                 Console.WriteLine($"Fajlovi kreirani u: {filesPath}");
                 Console.WriteLine($"[CONFIG] SH_threshold={shThreshold}, SH_mean_deviation_percent={shMeanDeviationPercent}%");
+                Console.WriteLine($"[CONFIG] HI_max_threshold={hiMaxThreshold}");
                 Console.WriteLine("Status: prenos u toku...");
 
                 RaiseTransferStarted();
@@ -126,6 +135,9 @@ namespace Server
 
                 // Tacka 9: analiza specificne vlage
                 AnalyzeSpecificHumidity(sample);
+
+                // Tacka 10: analiza indeksa toplote
+                AnalyzeHeatIndex(sample);
 
                 return new WeatherResponse
                 {
@@ -243,7 +255,6 @@ namespace Server
             }
 
             // 2. Provera odstupanja od tekuceg proseka SHmean
-            // Za proveru koristimo prosek prethodno primljenih uzoraka.
             if (shCount > 0)
             {
                 double shMean = shSum / shCount;
@@ -291,12 +302,81 @@ namespace Server
             hasPreviousSh = true;
         }
 
+        private void AnalyzeHeatIndex(WeatherSample sample)
+        {
+            double hi = CalculateHeatIndex(sample.T, sample.Rh);
+
+            // DeltaHI = HI[n] - HI[n-1]
+            if (hasPreviousHi)
+            {
+                double deltaHi = hi - previousHi;
+
+                if (Math.Abs(deltaHi) > hiMaxThreshold)
+                {
+                    string direction;
+
+                    if (deltaHi > 0)
+                    {
+                        direction = "iznad ocekivanog";
+                    }
+                    else
+                    {
+                        direction = "ispod ocekivanog";
+                    }
+
+                    string message =
+                        $"HISpike: DeltaHI={deltaHi:F2}, prethodni HI={previousHi:F2}, trenutni HI={hi:F2}, prag={hiMaxThreshold:F2}";
+
+                    Console.WriteLine($"[ANALITIKA HI] {message}");
+
+                    RaiseWarning(
+                        "HISpike",
+                        direction,
+                        message,
+                        sample,
+                        deltaHi,
+                        hiMaxThreshold);
+                }
+            }
+
+            Console.WriteLine($"[ANALITIKA HI] T={sample.T:F2}, Rh={sample.Rh:F2}, HI={hi:F2}");
+
+            previousHi = hi;
+            hasPreviousHi = true;
+        }
+
+        private double CalculateHeatIndex(double T, double rh)
+        {
+            // Formula iz specifikacije:
+            // HI = -8.78 + 1.61*T + 2.34*rh - 0.15*T*rh - 0.01*T^2 - 0.02*rh^2
+            //      + 0.00*T^2*rh + 0.00*T*rh^2 - 0.00*T^2*rh^2
+
+            double hi =
+                -8.78
+                + 1.61 * T
+                + 2.34 * rh
+                - 0.15 * T * rh
+                - 0.01 * Math.Pow(T, 2)
+                - 0.02 * Math.Pow(rh, 2)
+                + 0.00 * Math.Pow(T, 2) * rh
+                + 0.00 * T * Math.Pow(rh, 2)
+                - 0.00 * Math.Pow(T, 2) * Math.Pow(rh, 2);
+
+            return hi;
+        }
+
         private void ResetSpecificHumidityAnalytics()
         {
             hasPreviousSh = false;
             previousSh = 0.0;
             shSum = 0.0;
             shCount = 0;
+        }
+
+        private void ResetHeatIndexAnalytics()
+        {
+            hasPreviousHi = false;
+            previousHi = 0.0;
         }
 
         private double ReadDoubleFromConfig(string key, double defaultValue)
