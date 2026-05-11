@@ -49,6 +49,8 @@
     <Compile Include="FileWriter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WeatherEventArgs.cs" />
+    <Compile Include="WeatherEventLogger.cs" />
     <Compile Include="WeatherService.cs" />
   </ItemGroup>
   <ItemGroup>

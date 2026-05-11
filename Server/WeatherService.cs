@@ -9,9 +9,22 @@ namespace Server
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class WeatherService : IWeatherService
     {
+        public event EventHandler OnTransferStarted;
+        public event EventHandler<WeatherSampleEventArgs> OnSampleReceived;
+        public event EventHandler OnTransferCompleted;
+        public event EventHandler<WarningEventArgs> OnWarningRaised;
+
         private bool sessionActive = false;
         private FileWriter fileWriter = null;
         private string filesPath = ConfigurationManager.AppSettings["path"] ?? "Files";
+
+        private WeatherEventLogger eventLogger;
+
+        public WeatherService()
+        {
+            eventLogger = new WeatherEventLogger();
+            eventLogger.Subscribe(this);
+        }
 
         public WeatherResponse StartSession(SessionMeta meta)
         {
@@ -29,15 +42,18 @@ namespace Server
                         new ValidationFault("Naziv stanice je obavezno polje."));
                 }
 
-                // Kreiranje FileWriter-a i header-a
                 fileWriter = new FileWriter(filesPath);
+
                 fileWriter.WriteSession("Date,T,Tpot,Tdew,Rh,Sh");
                 fileWriter.WriteReject("Date,T,Tpot,Tdew,Rh,Sh,Razlog");
 
                 sessionActive = true;
+
                 Console.WriteLine($"Sesija pokrenuta za stanicu: {meta.StationName}");
                 Console.WriteLine($"Fajlovi kreirani u: {filesPath}");
                 Console.WriteLine("Status: prenos u toku...");
+
+                RaiseTransferStarted();
 
                 return new WeatherResponse
                 {
@@ -72,12 +88,10 @@ namespace Server
                         new DataFormatFault("Uzorak ne sme biti null."));
                 }
 
-                // Validacija
                 string validationError = ValidateSample(sample);
 
                 if (validationError != null)
                 {
-                    // Upisuje u rejects.csv
                     fileWriter.WriteReject(
                         $"{sample.Date},{sample.T},{sample.Tpot},{sample.Tdew},{sample.Rh},{sample.Sh},{validationError}");
 
@@ -87,12 +101,13 @@ namespace Server
                         new ValidationFault(validationError));
                 }
 
-                // Upisuje u measurements_session.csv
                 fileWriter.WriteSession(
                     $"{sample.Date},{sample.T},{sample.Tpot},{sample.Tdew},{sample.Rh},{sample.Sh}");
 
                 Console.WriteLine($"[PRIMLJEN UZORAK] Datum: {sample.Date} | T={sample.T} | Sh={sample.Sh} | Rh={sample.Rh}");
                 Console.WriteLine("Status: prenos u toku...");
+
+                RaiseSampleReceived(sample);
 
                 return new WeatherResponse
                 {
@@ -121,7 +136,6 @@ namespace Server
                         new ValidationFault("Nema aktivne sesije."));
                 }
 
-                // Dispose FileWriter-a
                 if (fileWriter != null)
                 {
                     fileWriter.Dispose();
@@ -129,8 +143,11 @@ namespace Server
                 }
 
                 sessionActive = false;
+
                 Console.WriteLine("Status: zavrsen prenos.");
                 Console.WriteLine("Sesija zavrsena. Fajlovi sacuvani.");
+
+                RaiseTransferCompleted();
 
                 return new WeatherResponse
                 {
@@ -170,6 +187,40 @@ namespace Server
                 return $"Tdew nije u dozvoljenom opsegu. Vrednost: {sample.Tdew}";
 
             return null;
+        }
+
+        private void RaiseTransferStarted()
+        {
+            OnTransferStarted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void RaiseSampleReceived(WeatherSample sample)
+        {
+            OnSampleReceived?.Invoke(this, new WeatherSampleEventArgs(sample));
+        }
+
+        private void RaiseTransferCompleted()
+        {
+            OnTransferCompleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void RaiseWarning(
+            string warningType,
+            string direction,
+            string message,
+            WeatherSample sample,
+            double value,
+            double threshold)
+        {
+            OnWarningRaised?.Invoke(
+                this,
+                new WarningEventArgs(
+                    warningType,
+                    direction,
+                    message,
+                    sample,
+                    value,
+                    threshold));
         }
     }
 }
